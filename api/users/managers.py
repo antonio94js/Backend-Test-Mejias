@@ -1,4 +1,5 @@
 from django.contrib.auth.base_user import BaseUserManager
+import logging
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, first_name, last_name, password, **extra_fields):

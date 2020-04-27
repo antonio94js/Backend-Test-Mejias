@@ -28,8 +28,11 @@ venv/
 ENV/
 
 # Database data
-docker/db/pgdata/
+docker/bd/*
+!docker/bd/.gitkeep
 
 db.sqlite3
 
+# VS Code configs
 .vscode/*
+
