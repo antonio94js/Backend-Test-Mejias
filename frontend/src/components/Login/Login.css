@@ -1,0 +1,13 @@
+.login {
+  border: 1px solid #e2e5e9;
+  width: 572px;
+  /* text-align: center; */
+  margin: 0 auto;
+  padding: 50px;
+  display: inline-block;
+  vertical-align: center;
+  position: absolute;
+  top: 24%;
+  left: 33%;
+  border-radius: 25px;
+}
