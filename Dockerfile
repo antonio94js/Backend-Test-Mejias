@@ -17,6 +17,8 @@ WORKDIR ${appDir}
 # Create app directory and changing owner
 RUN mkdir -p ${appDir} && chown -R django:django ${appDir}
 
+# Add an alias to the python manage.py command inside the container
+RUN echo 'alias dj="python manage.py"' >> ~/.bashrc
 ## Update and Install dependencies
 RUN apt-get update && \
     apt-get upgrade -y && \
