@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from django.utils.timezone import localdate
 from ..common.models import CommonModel
-from .managers import MenuManager
+from .managers import MenuManager, OptionManager
 
 
 class Menu(CommonModel):
@@ -19,7 +19,7 @@ class Menu(CommonModel):
     objects = MenuManager()  # Setting the custom menu manager
 
     def is_editable(self, raise_exception = True) -> bool:
-        """[Define whether or not the current model is available]
+        """[Determine whether or not the current model instance is available to be edited]
 
         Arguments:
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
@@ -45,3 +45,6 @@ class Option(CommonModel):
     description = models.TextField()
     menu = models.ForeignKey(
         Menu, on_delete=models.CASCADE, related_name='options')
+    
+    objects = OptionManager()  # Setting the custom menu manager
+

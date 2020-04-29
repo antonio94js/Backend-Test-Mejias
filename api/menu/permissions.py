@@ -11,3 +11,19 @@ class IsPublicMenuAvailable(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj) -> bool:
         return obj.available_date == localdate()
+
+
+class OrderBelongsToMenu(permissions.BasePermission):
+
+    EDIT_METHODS = ['PUT', 'DELETE']
+    
+    message = 'This order doesn\'t belong to this menu'
+
+    """
+    Object-level permission to protect the menu 
+    """
+
+    def has_object_permission(self, request, view, obj) -> bool:
+        if request.method in self.EDIT_METHODS:
+            return str(obj.menu.id) == view.kwargs.get('menu_pk')
+        return True

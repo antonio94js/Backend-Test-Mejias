@@ -16,21 +16,28 @@ class OptionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         menu_pk = validated_data.pop('menu_pk', None)
+
         try:
             menu = Menu.objects.get(id=menu_pk)
             menu.is_editable()
+            Option.objects.check_duplicated(
+                menu_pk=menu_pk, name=validated_data.get('name'))
         except ObjectDoesNotExist:
             raise ValidationError(
-                {'detail': 'You tried to add an option to an non-existing menu'}, code=422)
+                {'detail': 'You tried to add an option to an non-existing menu'})
+        except ValidationError as Error:
+            raise ValidationError({'detail': Error.detail})
         else:
             return Option.objects.create(menu=menu, **validated_data)
 
     def update(self, instance, validated_data):
         menu_pk = validated_data.pop('menu_pk')
+
         if Menu.objects.is_editable(pk=menu_pk):
             for key, value in validated_data.items():
                 setattr(instance, key, value)
             instance.save()
+
         return instance
 
 
@@ -46,9 +53,11 @@ class MenuSerializer(serializers.ModelSerializer):
         Validates the available_date field to be greater or equal than today
         """
         today = localdate()
+
         if value < today:
             raise ValidationError(
                 {'detail': f'You cannot set a menu in the past, it must start at least since {today}'})
+
         return value
 
     def create(self, validated_data):
@@ -57,7 +66,13 @@ class MenuSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if instance.is_editable():
+            if 'available_date' in validated_data:
+                Menu.objects.check_menu_at_date(
+                    validated_data.get('available_date'), instance.id)
+
             for key, value in validated_data.items():
                 setattr(instance, key, value)
+
             instance.save()
+
         return instance

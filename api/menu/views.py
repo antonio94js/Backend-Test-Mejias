@@ -1,10 +1,10 @@
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from .models import Menu, Option
 from .serializers import MenuSerializer, OptionSerializer
-from .permissions import IsPublicMenuAvailable
+from .permissions import IsPublicMenuAvailable, OrderBelongsToMenu
 
 class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin,  GenericViewSet):
     serializer_class = MenuSerializer
@@ -21,17 +21,20 @@ class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveMo
         kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
 
-class OptionViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
+class OptionViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = OptionSerializer
     queryset = Option.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, OrderBelongsToMenu]
 
     def perform_create(self, serializer):
-        print(self.kwargs)
         serializer.save(menu_pk=self.kwargs.get('menu_pk'))
+
     def perform_update(self, serializer):
-        print(self.kwargs)
         serializer.save(menu_pk=self.kwargs.get('menu_pk'))
+
+    def perform_destroy(self, instance):
+        if Menu.objects.is_editable(pk=self.kwargs.get('menu_pk')):
+            super().perform_destroy(instance)
 
 
 
