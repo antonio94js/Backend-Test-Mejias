@@ -10,11 +10,11 @@ menu_routers = routers.SimpleRouter(trailing_slash=False)
 menu_routers.register(r'menu', MenuViewSet)
 menu_routers.register(r'set-menu', PublicMenuViewSet)
 
-order_routers = routers.NestedSimpleRouter(menu_routers, r'menu', lookup='menu')
-order_routers.register(r'orders', OptionViewSet)
+option_routers = routers.NestedSimpleRouter(menu_routers, r'menu', lookup='menu')
+option_routers.register(r'options', OptionViewSet)
 
 urlpatterns = [
   url(r'^', include(menu_routers.urls)),
-  url(r'^', include(order_routers.urls)),
+  url(r'^', include(option_routers.urls)),
 ]
   

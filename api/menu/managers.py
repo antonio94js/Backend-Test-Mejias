@@ -1,28 +1,22 @@
 from django.apps import apps
-from django.db import models
+from django.db.models import Manager, Q
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 
 
-class MenuManager(models.Manager):
+class MenuManager(Manager):
     """
     Custom Menu Manager.
     """
 
     def create_menu(self, **model_arguments):
-        options = model_arguments.pop('options')
         available_date = model_arguments.get('available_date')
-        # previous_menu = self.model.objects.get(available_date=available_date)
-        # previous_menu = self.model.objects.filter(
-        #     available_date=available_date)
-
-        # if previous_menu:
-        #     raise ValidationError(
-        #         {'detail': f'You\'ve already created a menu for {available_date}'})
 
         self.model.objects.check_menu_at_date(available_date)
 
         menu = self.model.objects.create(**model_arguments)
+
+        options = model_arguments.pop('options')
 
         if options:
             Option = apps.get_model('menu', 'Option')
@@ -33,7 +27,7 @@ class MenuManager(models.Manager):
         return menu
 
     def is_editable(self, pk: str, raise_exception: bool = True) -> bool:
-        """[Determine whether or not the stated object is available to be edited]
+        """[Determines whether or not the stated object is available to be edited]
 
         Arguments:
             pk {[str]} -- [The Menu's ID over which the validation is gonna be performed ]
@@ -45,8 +39,31 @@ class MenuManager(models.Manager):
         model = self.model.objects.get(pk=pk)
         return model.is_editable(raise_exception)
 
-    def check_menu_at_date(self, date, consultant_id = None, raise_exception: bool = True) -> bool:
-        """[Determine whether or not already exist a menu in the date stated]
+    def has_ordered(self, menu, user, raise_exception: bool = True) -> bool:
+        """[Determines whether or not a user has already ordered in a given menu]
+
+        Arguments:
+            menu {[object]} -- [The Menu's object to search for ]
+            user {[object]} -- [The User's object to search for ]
+            raise_exception {[bool]} -- [Whether or not this method should raise an exception]
+
+        Raises:
+            ValidationError: [States that the current user has already ordered an option for this menu]
+        """
+        try:
+            self.model.objects.filter(Q(options__menu=menu) & Q(
+                options__orders__user=user)).get()
+        except ObjectDoesNotExist:
+            return False
+        else:
+            if raise_exception:
+                raise ValidationError(
+                    {'detail': f'The user has already placed an order in this menu'})
+            else:
+                return True
+
+    def check_menu_at_date(self, date, consultant_id=None, raise_exception: bool = True) -> bool:
+        """[Determines whether or not already exist a menu in the stated date ]
 
         Arguments:
             date {[date]} -- [The date of the menu to search for]
@@ -54,29 +71,29 @@ class MenuManager(models.Manager):
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
 
         Raises:
-            ValidationError: [States that there is already a menu in the set date]
+            ValidationError: [States that there is already a menu in the stated date]
         """
-        try:  
+        try:
             menu = self.model.objects.get(available_date=date)
-            if menu:
-                if menu.id == consultant_id:
-                    return False
-                if raise_exception:
-                    raise ValidationError(
-                    {'detail': f'There is already a menu created at {date}'})
-                else:
-                    return True
         except ObjectDoesNotExist:
             return False
+        else:
+            if menu.id == consultant_id:
+                return False
+            if raise_exception:
+                raise ValidationError(
+                    {'detail': f'There is already a menu created at {date}'})
+            else:
+                return True
 
-        
-class OptionManager(models.Manager):
+
+class OptionManager(Manager):
     """
     Custom Option Manager.
     """
 
     def check_duplicated(self, menu_pk: str, name: str, raise_exception: bool = True) -> bool:
-        """[Determine if already exists a duplicated]
+        """[Determines if already exists a duplicated]
 
         Arguments:
             menu_pk {[str]} -- [The Menu's ID to search for ]
@@ -93,8 +110,6 @@ class OptionManager(models.Manager):
                 raise ValidationError(
                     {'detail': f'There is already an option with the name "{name}" in this menu'})
             else:
-                return True  
+                return True
 
         return False
-
-   

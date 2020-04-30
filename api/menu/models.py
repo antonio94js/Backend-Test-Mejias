@@ -19,7 +19,7 @@ class Menu(CommonModel):
     objects = MenuManager()  # Setting the custom menu manager
 
     def is_editable(self, raise_exception = True) -> bool:
-        """[Determine whether or not the current model instance is available to be edited]
+        """[Determines whether or not the current model instance is available to be edited]
 
         Arguments:
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
@@ -35,6 +35,12 @@ class Menu(CommonModel):
                 return False
         
         return True
+    def is_available(self) -> bool:
+        """
+        Determines whether or not the current menu instance is on its launch date
+        """
+        # Reuses the is_editable behavior which is almost the same required for this method
+        return not self.is_editable(False)
 
 
 class Option(CommonModel):

@@ -76,3 +76,10 @@ class MenuSerializer(serializers.ModelSerializer):
             instance.save()
 
         return instance
+
+
+class OptionNestedSerializer(OptionSerializer):
+
+    class Meta(OptionSerializer.Meta):
+        fields = OptionSerializer.Meta.fields + ('menu',)
+        depth = 1
