@@ -9,7 +9,6 @@ logger = logging.getLogger("logger")
 
 
 class OptionSerializer(serializers.ModelSerializer):
-    # menu_id = serializers.UUIDField(write_only=True)
     class Meta:
         model = Option
         fields = ('id', 'name', 'description')

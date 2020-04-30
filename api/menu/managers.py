@@ -58,9 +58,24 @@ class MenuManager(Manager):
         else:
             if raise_exception:
                 raise ValidationError(
-                    {'detail': f'The user has already placed an order in this menu'})
+                    {'detail': f'You has already placed an order in this menu'})
             else:
                 return True
+
+    def get_orders(self, pk) -> bool:
+        """[Determines whether or not a user has already ordered in a given menu]
+
+        Arguments:
+            menu {[object]} -- [The Menu's object to search for ]
+            user {[object]} -- [The User's object to search for ]
+            raise_exception {[bool]} -- [Whether or not this method should raise an exception]
+
+        Raises:
+            ValidationError: [States that the current user has already ordered an option for this menu]
+        """
+        Order = apps.get_model('orders', 'Order')
+        return Order.objects.filter(Q(option__menu_id=pk))
+
 
     def check_menu_at_date(self, date, consultant_id=None, raise_exception: bool = True) -> bool:
         """[Determines whether or not already exist a menu in the stated date ]

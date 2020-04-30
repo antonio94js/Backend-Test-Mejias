@@ -3,17 +3,24 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, NotFound
 from drf_dynamic_fields import DynamicFieldsMixin
+from rest_flex_fields import FlexFieldsModelSerializer
 from .models import Order
 from ..menu.serializers import OptionNestedSerializer
+from ..users.serializers import UserSignUpSerializer
 
 
-class OrderSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+class OrderSerializer(FlexFieldsModelSerializer):
     option_id = serializers.UUIDField(write_only=True)
-    option = OptionNestedSerializer(read_only=True)
+    option = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Order
-        fields = ('id','option_id', 'additional_notes', 'created_at', 'updated_at', 'option')
+        fields = ('id','option_id', 'additional_notes', 'created_at', 'updated_at', 'option', 'user')
+        expandable_fields = {
+            'option': OptionNestedSerializer,
+            'user': UserSignUpSerializer
+        }
 
     def create(self, validated_data):
         option_id = validated_data.pop('option_id')
