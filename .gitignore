@@ -32,6 +32,7 @@ docker/bd/*
 !docker/bd/.gitkeep
 
 db.sqlite3
+celerybeat-schedule
 
 # VS Code configs
 .vscode/*

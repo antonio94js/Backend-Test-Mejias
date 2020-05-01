@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from celery.schedules import crontab
 from .modules.jwt import config as jwt_module_config
 from .modules.logger import config as logger_module_config
 
@@ -28,7 +29,6 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'foo')
 DEBUG = os.environ.get('DEBUG', True)
 
 ALLOWED_HOSTS = '*'
-
 
 # Application definition
 
@@ -122,7 +122,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'users.User'
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -163,5 +162,17 @@ SIMPLE_JWT = jwt_module_config
 # Logger Settings
 
 LOGGING = logger_module_config
+
+# Celery Configurations
+
+CELERY_BROKER_URL = os.environ.get('REDIS_URI')
+CELERY_RESULT_BACKEND = os.environ.get('REDIS_URI')
+CELERY_BEAT_SCHEDULE = {
+    'send-daily-menu': {
+        'task': 'api.menu.tasks.send_daily_menu',
+        'schedule': crontab(),
+        'args': ()
+    },
+}
 
 

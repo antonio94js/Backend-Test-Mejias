@@ -2,6 +2,7 @@ from django.apps import apps
 from django.db.models import Manager, Q
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
+from django.utils.timezone import localdate
 
 
 class MenuManager(Manager):
@@ -13,10 +14,10 @@ class MenuManager(Manager):
         available_date = model_arguments.get('available_date')
 
         self.model.objects.check_menu_at_date(available_date)
+        
+        options = model_arguments.pop('options')
 
         menu = self.model.objects.create(**model_arguments)
-
-        options = model_arguments.pop('options')
 
         if options:
             Option = apps.get_model('menu', 'Option')
@@ -75,6 +76,15 @@ class MenuManager(Manager):
         """
         Order = apps.get_model('orders', 'Order')
         return Order.objects.filter(Q(option__menu_id=pk))
+
+    def get_available(self) -> bool:
+        """
+        Returns the menu available for today
+        """
+        try:
+            return self.model.objects.filter(available_date=localdate()).get()
+        except ObjectDoesNotExist:
+            return None            
 
 
     def check_menu_at_date(self, date, consultant_id=None, raise_exception: bool = True) -> bool:

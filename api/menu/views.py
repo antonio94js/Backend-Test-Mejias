@@ -1,6 +1,6 @@
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from .permissions import IsPublicMenuAvailable, OrderBelongsToMenu
 class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin,  GenericViewSet):
     serializer_class = MenuSerializer
     queryset = Menu.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get_queryset(self):
         return Menu.objects.filter(user=self.request.user)
@@ -34,7 +34,7 @@ class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveMo
 class OptionViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = OptionSerializer
     queryset = Option.objects.all()
-    permission_classes = [IsAuthenticated, OrderBelongsToMenu]
+    permission_classes = [IsAuthenticated, IsAdminUser, OrderBelongsToMenu]
 
     def perform_create(self, serializer):
         serializer.save(menu_pk=self.kwargs.get('menu_pk'))

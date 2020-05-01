@@ -17,6 +17,15 @@ services:
         POSTGRES_PASSWORD: admin
         POSTGRES_USER: django
         POSTGRES_DB: django_test
+  redis:
+      image: redis:5.0.6
+      container_name: redis
+      logging:
+        driver: none
+      volumes:
+        - ./docker/bd/redis:/data
+      ports:
+        - "6379:6379"
   ##
   # Backend services
   ##
