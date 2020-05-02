@@ -2,10 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import localdate
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from .models import Menu, Option
-import logging
-
-logger = logging.getLogger("logger")
+from ..models import Menu, Option
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -14,20 +11,7 @@ class OptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'description')
 
     def create(self, validated_data):
-        menu_pk = validated_data.pop('menu_pk', None)
-
-        try:
-            menu = Menu.objects.get(id=menu_pk)
-            menu.is_editable()
-            Option.objects.check_duplicated(
-                menu_pk=menu_pk, name=validated_data.get('name'))
-        except ObjectDoesNotExist:
-            raise ValidationError(
-                {'detail': 'You tried to add an option to an non-existing menu'})
-        except ValidationError as Error:
-            raise ValidationError({'detail': Error.detail})
-        else:
-            return Option.objects.create(menu=menu, **validated_data)
+        return Option.objects.create_option(**validated_data)
 
     def update(self, instance, validated_data):
         menu_pk = validated_data.pop('menu_pk')
@@ -55,7 +39,7 @@ class MenuSerializer(serializers.ModelSerializer):
 
         if value < today:
             raise ValidationError(
-                {'detail': f'You cannot set a menu in the past, it must start at least since {today}'})
+                {'detail': f'You cannot set a menu in the past, it must start at least from {today}'})
 
         return value
 
@@ -66,7 +50,7 @@ class MenuSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if instance.is_editable():
             if 'available_date' in validated_data:
-                Menu.objects.check_menu_at_date(
+                Menu.objects.check_at_date(
                     validated_data.get('available_date'), instance.id)
 
             for key, value in validated_data.items():

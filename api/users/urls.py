@@ -1,5 +1,7 @@
+from django.urls import include
+from django.conf.urls import url
 from rest_framework import routers
-from .views import UserSignUpViewSet
+from .v1.views import UserSignUpViewSet
 
 app_name = 'users'
 
@@ -7,6 +9,6 @@ router = routers.DefaultRouter()
 
 router.register(r'sign-up', UserSignUpViewSet)
 
-urlpatterns = []
-
-urlpatterns += router.urls
+urlpatterns = [
+  url(r'v1/', include(router.urls)),
+]

@@ -3,21 +3,24 @@ from django.db.models import Manager, Q
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import ValidationError
 from django.utils.timezone import localdate
-
+from ..common.utils import throwable
 
 class MenuManager(Manager):
     """
     Custom Menu Manager.
     """
 
-    def create_menu(self, **model_arguments):
-        available_date = model_arguments.get('available_date')
+    def create_menu(self, **model_attributes):
+        """
+        Creates a new menu by applying all the proper validations
+        """
+        available_date = model_attributes.get('available_date')
 
-        self.model.objects.check_menu_at_date(available_date)
+        self.model.objects.check_at_date(available_date)
         
-        options = model_arguments.pop('options')
+        options = model_attributes.pop('options')
 
-        menu = self.model.objects.create(**model_arguments)
+        menu = self.model.objects.create(**model_attributes)
 
         if options:
             Option = apps.get_model('menu', 'Option')
@@ -28,20 +31,21 @@ class MenuManager(Manager):
         return menu
 
     def is_editable(self, pk: str, raise_exception: bool = True) -> bool:
-        """[Determines whether or not the stated object is available to be edited]
+        """[Determines whether or not the stated menu by PK is available to be edited]
 
         Arguments:
-            pk {[str]} -- [The Menu's ID over which the validation is gonna be performed ]
+            pk {[str]} -- [The Menu's ID over which the validation is gonna be applied]
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
 
         Raises:
-            ValidationError: [State that the current object shouldn't be updated at this moment]
+            ValidationError: [States that the stated menu mustn't be updated at this moment]
         """
         model = self.model.objects.get(pk=pk)
         return model.is_editable(raise_exception)
 
+    @throwable(ValidationError, 'You has already placed an order in this menu')
     def has_ordered(self, menu, user, raise_exception: bool = True) -> bool:
-        """[Determines whether or not a user has already ordered in a given menu]
+        """[Determines whether or not a user has already placed an order in a given menu]
 
         Arguments:
             menu {[object]} -- [The Menu's object to search for ]
@@ -49,7 +53,7 @@ class MenuManager(Manager):
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
 
         Raises:
-            ValidationError: [States that the current user has already ordered an option for this menu]
+            ValidationError: [States that the current user has already placed an order for this menu]
         """
         try:
             self.model.objects.filter(Q(options__menu=menu) & Q(
@@ -57,25 +61,19 @@ class MenuManager(Manager):
         except ObjectDoesNotExist:
             return False
         else:
-            if raise_exception:
-                raise ValidationError(
-                    {'detail': f'You has already placed an order in this menu'})
-            else:
-                return True
+            return True
 
     def get_orders(self, pk) -> bool:
-        """[Determines whether or not a user has already ordered in a given menu]
+        """[Gets the orders placed in a menu]
 
         Arguments:
-            menu {[object]} -- [The Menu's object to search for ]
-            user {[object]} -- [The User's object to search for ]
-            raise_exception {[bool]} -- [Whether or not this method should raise an exception]
+            pk {[UUID]} -- [The Menu's ID to search for ]
 
-        Raises:
-            ValidationError: [States that the current user has already ordered an option for this menu]
+        Returns:
+            [QuerySet] -- [orders placed over the stated menu]
         """
         Order = apps.get_model('orders', 'Order')
-        return Order.objects.filter(Q(option__menu_id=pk))
+        return Order.objects.filter(option__menu_id=pk)
 
     def get_available(self) -> bool:
         """
@@ -86,30 +84,24 @@ class MenuManager(Manager):
         except ObjectDoesNotExist:
             return None            
 
-
-    def check_menu_at_date(self, date, consultant_id=None, raise_exception: bool = True) -> bool:
-        """[Determines whether or not already exist a menu in the stated date ]
+    @throwable(ValidationError, 'There is already a menu created on the set date')
+    def check_at_date(self, date, consultant_id=None, raise_exception: bool = True) -> bool:
+        """[Determines whether or not a menu in the stated date already exist]
 
         Arguments:
-            date {[date]} -- [The date of the menu to search for]
-            consultant_id {[str]} -- [Forces the method to return False if the found menu id is equal than consultant id]
+            date {[date]} -- [The date to search for]
+            consultant_id {[str]} -- [Forces the method to return False if the found menu id is equal than the consultant id]
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
 
         Raises:
-            ValidationError: [States that there is already a menu in the stated date]
+            ValidationError: [States that there is already a menu in the set date]
         """
         try:
             menu = self.model.objects.get(available_date=date)
         except ObjectDoesNotExist:
             return False
         else:
-            if menu.id == consultant_id:
-                return False
-            if raise_exception:
-                raise ValidationError(
-                    {'detail': f'There is already a menu created at {date}'})
-            else:
-                return True
+            return not menu.id == consultant_id
 
 
 class OptionManager(Manager):
@@ -117,8 +109,29 @@ class OptionManager(Manager):
     Custom Option Manager.
     """
 
+    def create_option(self, **model_arguments) -> bool:
+        """
+        Creates a new option by applying all the proper validations
+        """
+        Menu = apps.get_model('menu', 'Menu')
+        menu_pk = model_arguments.pop('menu_pk', None)
+
+        try:
+            menu = Menu.objects.get(id=menu_pk)
+            menu.is_editable()
+            self.model.objects.check_duplicated(
+                menu_pk=menu_pk, name=model_arguments.get('name'))
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {'detail': 'You tried to add an option to an non-existing menu'})
+        except ValidationError as error:
+            raise ValidationError({'detail': error.detail})
+        else:
+            return self.model.objects.create(menu=menu, **model_arguments)
+
+    @throwable(ValidationError, 'There is already an option with the set name in this menu')
     def check_duplicated(self, menu_pk: str, name: str, raise_exception: bool = True) -> bool:
-        """[Determines if already exists a duplicated]
+        """[Determines if a duplicated option already exists]
 
         Arguments:
             menu_pk {[str]} -- [The Menu's ID to search for ]
@@ -130,11 +143,4 @@ class OptionManager(Manager):
         """
         option = self.model.objects.filter(menu__pk=menu_pk, name=name)
 
-        if option:
-            if raise_exception:
-                raise ValidationError(
-                    {'detail': f'There is already an option with the name "{name}" in this menu'})
-            else:
-                return True
-
-        return False
+        return bool(option)

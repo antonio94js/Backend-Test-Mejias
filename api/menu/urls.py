@@ -1,7 +1,7 @@
 from django.urls import include
 from django.conf.urls import url
 from rest_framework_nested import routers
-from .views import MenuViewSet, PublicMenuViewSet, OptionViewSet
+from .v1.views import MenuViewSet, PublicMenuViewSet, OptionViewSet
 
 app_name = 'menu'
 
@@ -14,7 +14,6 @@ option_routers = routers.NestedSimpleRouter(menu_routers, r'menu', lookup='menu'
 option_routers.register(r'options', OptionViewSet)
 
 urlpatterns = [
-  url(r'^', include(menu_routers.urls)),
-  url(r'^', include(option_routers.urls)),
+    url(r'v1/', include(menu_routers.urls)),
+    url(r'v1/', include(option_routers.urls)),
 ]
-  

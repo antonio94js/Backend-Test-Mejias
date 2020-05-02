@@ -1,9 +1,9 @@
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
+from ..models import Order
+from ..permissions import IsRegularUser
 from .serializers import OrderSerializer
-from .models import Order
-from .permissions import IsRegularUser
 
 
 class OrderViewSet(CreateModelMixin, ListModelMixin, GenericViewSet):
