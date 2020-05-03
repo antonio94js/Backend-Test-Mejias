@@ -30,7 +30,7 @@ class TestMenuModel:
         """
         Should return false if the menu not available yet
         """
-        menu = create_menu() # By default this factory always create menu ahead of time
+        menu = create_menu() # By default this factory always create menu in the future
         assert not menu.is_available()
 
     def test_get_user(self, super_user, create_menu):

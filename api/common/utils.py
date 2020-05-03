@@ -14,12 +14,13 @@ def on_time(method):
         limit_hour = int(os.environ.get('LIMIT_ORDER_HOUR'))
         limit_datetime = datetime(
             today.year, today.month, today.day, limit_hour)
-
+        
         if datetime.now() > limit_datetime:
             raise ValidationError(
                 {'detail': 'The limit hour to place an order for this menu has finished, better luck next time'})
-
+        
         return method(*arg, **kwargs)
+
     return validate_limit_hour
 
 # Decorator Factory
@@ -37,8 +38,10 @@ def throwable(Exception: Exception, message: str, evalute: bool = True):
         def evaluate_result(*args, **kwargs):
             result = func(*args, **kwargs)
             raise_exception = kwargs.get("raise_exception", True)
+            
             if (result == evalute) and raise_exception:
                 raise Exception(message)
+            
             return result
         return evaluate_result
     return decorator

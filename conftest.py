@@ -1,5 +1,6 @@
 import pytest
-from test.units.menu.fixtures import create_menu, create_order
+from test.units.menu.fixtures import create_menu
+from test.units.orders.fixtures import create_order, set_on_time
 
 @pytest.fixture
 def super_user(db, django_user_model):
