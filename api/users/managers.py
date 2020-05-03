@@ -28,7 +28,6 @@ class CustomUserManager(BaseUserManager):
             **extra_fields,
             'is_staff': True,
             'is_superuser': True,
-            'is_active': True,
         }
 
         return self.create_user(email, first_name, last_name, password, **super_user_fields)

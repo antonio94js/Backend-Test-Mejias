@@ -1,3 +1,6 @@
-from django.test import TestCase
+import pytest
+from api.menu.models import Menu, Option
 
-# Create your tests here.
+
+def test_choro():
+  assert True

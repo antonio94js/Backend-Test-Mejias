@@ -90,7 +90,7 @@ class MenuManager(Manager):
 
         Arguments:
             date {[date]} -- [The date to search for]
-            consultant_id {[str]} -- [Forces the method to return False if the found menu id is equal than the consultant id]
+            consultant_id {[str]} -- [Forces the method to return False if the found menu id is equal than the consultant menu id]
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
 
         Raises:
