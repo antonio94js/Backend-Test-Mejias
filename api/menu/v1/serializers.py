@@ -48,7 +48,11 @@ class MenuSerializer(serializers.ModelSerializer):
         return Menu.objects.create_menu(**validated_data)
 
     def update(self, instance, validated_data):
+
         if instance.is_editable():
+            if 'options' in validated_data:
+                del validated_data['options']
+                
             if 'available_date' in validated_data:
                 Menu.objects.check_at_date(
                     validated_data.get('available_date'), instance.id)

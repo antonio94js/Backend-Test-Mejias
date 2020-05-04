@@ -1,12 +1,7 @@
 import pytest
-import os
-# import datetime
 from rest_framework.exceptions import ValidationError, NotFound
 from api.orders.models import Order
-import api.common.utils as utils
-# from datetime import datetime
-from ..helpers import get_future_day
-from datetime import datetime, timedelta, date
+from datetime import date
 from uuid import uuid4
 
 
