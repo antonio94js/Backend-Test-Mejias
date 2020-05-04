@@ -15,3 +15,20 @@ def create_menu(db, super_user):
         return Menu.objects.create_menu(user=user, name=name, description=description, available_date=available_date, options=options)
     
     return menu_factory
+
+
+@pytest.fixture
+def menu_mock():
+    return  {
+    'name': 'new name',
+    'description': 'new description',
+    'available_date': date.today(),
+    'options': []
+}
+
+@pytest.fixture
+def option_mock():
+    return  {
+        'name': 'new name',
+        'description': 'new description',
+    }

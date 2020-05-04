@@ -26,7 +26,8 @@ class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveMo
     
     @action(detail=True, url_path='orders')
     def get_orders(self, request, pk=None):
-        orders = Menu.objects.get_orders(pk=pk)
+        instance = self.get_object()
+        orders = Menu.objects.get_orders(pk=instance.id)
         serializer = OrderSerializer(orders, **{ 'context': self.get_serializer_context(), 'many': True})
         return Response(serializer.data)
 
