@@ -1,4 +1,34 @@
-FROM python:3.7.5-buster
+# ##
+# # Build Stage
+# ##
+# FROM node:10.16.3-buster as build-stage
+
+# # Setting enviroment variables
+# ENV appDir /usr/src/app
+
+# # Setting work directory
+# WORKDIR ${appDir}
+
+# # Create app directory and changing owner
+# RUN mkdir -p ${appDir}
+
+# # Copy package.json inside app
+# COPY frontend/yarn.lock ./
+
+# # Install app dependencies
+# RUN yarn global add node-gyp
+# RUN yarn
+
+# #  Bundle source code
+# COPY --chown=node:node frontend/ ./
+
+# # Compile the app
+# RUN yarn build
+
+##
+# Python stage
+##
+FROM nikolaik/python-nodejs:python3.7-nodejs10
 
 # File Author / Maintainer
 LABEL maintainer="Antonio Mejias"
@@ -7,12 +37,10 @@ LABEL maintainer="Antonio Mejias"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV appDir /usr/src/app
+ENV frontendDir /usr/src/app/frontend
 
-# Setting work directory
 WORKDIR ${appDir}
 
-#  Add user
-#  RUN addgroup --system django && adduser --system --no-create-home --group django
 
 # Create app directory and changing owner
 RUN mkdir -p ${appDir}
@@ -26,19 +54,27 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y netcat-openbsd gcc && \
     apt-get clean
-  
+
+# Install psql
+RUN apt-get install -y postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
 
 ## Add and Install requirements
 RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r requirements.txt
 
-
-## switch to non-root user
-# USER django
-
 ## Add app
 COPY . ./
+
+# Setting work directory
+WORKDIR ${frontendDir}
+
+RUN yarn
+RUN yarn build
+  
+WORKDIR ${appDir}
 
 RUN chmod +x ./entrypoint.sh
 

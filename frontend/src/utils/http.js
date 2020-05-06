@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-const baseURL = 'http://localhost:8000'
+const url = window.location.origin;
+const baseURL = url
 
 const requestInterceptor = config => {
     const token = localStorage.getItem('auth-token');

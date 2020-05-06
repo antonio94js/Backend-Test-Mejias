@@ -16,7 +16,7 @@ services:
       environment:
         POSTGRES_PASSWORD: admin
         POSTGRES_USER: django
-        POSTGRES_DB: django_test
+        POSTGRES_DB: django
   redis:
       image: redis:5.0.6
       container_name: redis
@@ -34,30 +34,12 @@ services:
     build:
       context: .
     volumes:
-       - "./docker/wait-for-it.sh:/wait-for-it.sh"
+       - "./docker/wait-for-postgres.sh:/wait-for-postgres.sh"
        - ".:/usr/src/app"
-    command: "/wait-for-it.sh postgres:5432 -t 30 -- python manage.py runserver 0.0.0.0:8000"
+    command: "/wait-for-postgres.sh postgres python manage.py runserver 0.0.0.0:8000"
     depends_on:
       - postgres
     ports:
       - "8000:8000"
     env_file: 
        - ./.env.example
-  ##
-  # Frontend services
-  ##
-  web:
-    container_name: delivery-meal-web
-    build:
-      context: ./frontend
-    volumes:
-       - "./frontend:/usr/src/app"
-       - '/usr/src/app/node_modules'
-    command: "npm start"
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
-    environment: 
-      CHOKIDAR_USEPOLLING: "true"
-      CI: "true" 

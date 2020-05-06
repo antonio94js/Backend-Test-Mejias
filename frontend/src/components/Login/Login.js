@@ -17,7 +17,7 @@ const Login = (props) => {
   return (
 
     <Container className="themed-container login">
-      {error.error && <UncontrolledAlert color="danger"> {error.message} </UncontrolledAlert>}
+      {error.error && <UncontrolledAlert onClick={() => setError({ error: false, message: '' })} color="danger"> {error.message} </UncontrolledAlert>}
       <h2>Sign In</h2>
       <Form className="form">
         <FormGroup>

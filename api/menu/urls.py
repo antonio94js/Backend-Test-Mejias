@@ -13,7 +13,6 @@ menu_routers.register(r'daily-menu', PublicMenuViewSet, basename='daily-menu')
 
 option_routers = routers.NestedSimpleRouter(menu_routers, r'menus', lookup='menus')
 option_routers.register(r'options', OptionViewSet)
-print(option_routers.urls)
 
 urlpatterns = [
     url(r'v1/', include(menu_routers.urls)),

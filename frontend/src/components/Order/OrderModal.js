@@ -51,7 +51,7 @@ const PlaceOrder = (props) => {
       <ModalHeader toggle={toggle}>Place a new order</ModalHeader>
       <ModalBody>
         <Container>
-          {error.error && <UncontrolledAlert color="danger"> {error.message} </UncontrolledAlert>}
+          {error.error && <UncontrolledAlert onClick={() => setError({ error: false, message: '' })} color="danger"> {error.message} </UncontrolledAlert>}
           {isLoggedIn &&
             <Form>
               <FormGroup>

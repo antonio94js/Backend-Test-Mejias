@@ -30,6 +30,7 @@ ENV/
 # Database data
 docker/bd/*
 !docker/bd/.gitkeep
+!frontend/build/
 
 db.sqlite3
 celerybeat-schedule

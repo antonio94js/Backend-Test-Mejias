@@ -17,7 +17,7 @@ const CreateMenu = (props) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date());
-  const [optionList, setOption] = useState([]);
+  const [optionList, setOption] = useState([{ name: '', description: '', price: 0 }]);
   const [error, setError] = useState({ error: false, message: '' });
 
 
@@ -26,7 +26,7 @@ const CreateMenu = (props) => {
     setDescription('');
     setDate(new Date());
     setError({ error: false, message: '' });
-    setOption([])
+    setOption([{ name: '', description: '', price: 0 }])
   }
 
 
@@ -65,13 +65,18 @@ const CreateMenu = (props) => {
 
   }
 
+  console.log(date.getDay() === new Date().getDay());
+
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size='lg'>
       <ModalHeader toggle={toggle}>Create new Menu</ModalHeader>
       <ModalBody>
         <Container>
-          {error.error && <UncontrolledAlert color="danger"> {error.message} </UncontrolledAlert>}
+          {error.error && <UncontrolledAlert onClick={() => setError({ error: false, message: '' })} color="danger"> {error.message} </UncontrolledAlert>}
+          {date.getDay() === new Date().getDay() && <UncontrolledAlert color="info"> 
+          Remember that, when you create a new menu whose launching date is today, <b>you can not</b> edit it later.
+           </UncontrolledAlert>}
           <Form>
 
             <FormGroup>

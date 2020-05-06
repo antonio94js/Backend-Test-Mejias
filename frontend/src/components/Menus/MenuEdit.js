@@ -58,6 +58,7 @@ const EditMenu = (props) => {
       toggle();
       toast.success('Menu saved successfully.');
     } catch (error) {
+      toast.error('There was an error editing the menu, please check the details in the form.');
       console.error(error);
       setError({
         error: true,
@@ -123,7 +124,7 @@ const EditMenu = (props) => {
       <ModalHeader toggle={() => {setRefresh(refresh + 1); toggle();}}>Edit Menu</ModalHeader>
       <ModalBody>
         <Container>
-          {error.error && <UncontrolledAlert color="danger"> {error.message} </UncontrolledAlert>}
+          {error.error && <UncontrolledAlert onClick={() => setError({ error: false, message: '' })} color="danger"> {error.message} </UncontrolledAlert>}
           <Form>
 
             <FormGroup>
@@ -150,7 +151,7 @@ const EditMenu = (props) => {
           <Container>
 
             {optionList.map((input, index) => (<Form key={index} style={{ 'position': 'relative' }}>
-              {errors[index] && errors[index].error && <UncontrolledAlert color="danger"> {errors[index].message} </UncontrolledAlert>}
+              {errors[index] && errors[index].error && <UncontrolledAlert  onClick={() => setOptionError({...error,  [index]: { error: false, message: '' }})} color="danger"> {errors[index].message} </UncontrolledAlert>}
               <Row form>
                 <Button style={{ 'position': 'absolute', 'left': '610px', 'top': '-3px', 'cursor': 'pointer', zIndex:10 }} onClick={saveOption.bind(this, input, index, true)} close />
                 <Col md={6}>

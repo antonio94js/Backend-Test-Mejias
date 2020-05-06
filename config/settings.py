@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from celery.schedules import crontab
-from .modules.jwt import config as jwt_module_config
-from .modules.logger import config as logger_module_config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -167,20 +166,49 @@ CORS_URLS_REGEX = r'^/api/.*$'
 
 # Json Web Token Settings
 
-SIMPLE_JWT = jwt_module_config
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=5),
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': os.environ.get('JWT_SECRET_KEY', 'myprivatekey'),
+    'USER_ID_CLAIM': 'id',
+}
 
 # Logger Settings
 
-LOGGING = logger_module_config
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
+        },
+    },
+    'loggers': {
+        'logger': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+    },
+}
 
 # Celery Configurations
 
 CELERY_BROKER_URL = os.environ.get('REDIS_URI')
 CELERY_RESULT_BACKEND = os.environ.get('REDIS_URI')
+CELERY_ENABLE_UTC = False
+CELERY_TIMEZONE = 'America/Santiago'
 CELERY_BEAT_SCHEDULE = {
     'send-daily-menu': {
         'task': 'api.menu.tasks.send_daily_menu',
-        'schedule': crontab(),
+        'schedule': crontab(hour=8, minute=0),
         'args': ()
     },
 }
