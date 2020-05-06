@@ -8,7 +8,6 @@ from ..common.utils import on_time
 class OrderManager(Manager):
     @on_time
     def place_order(self, **model_attributes):
-        print('callinnng')
         """
         Place a new order for a given option and perform the respective validations
         """

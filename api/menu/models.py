@@ -53,6 +53,9 @@ class Menu(CommonModel):
         """
         return self.user
 
+    class Meta:
+        ordering = ['-available_date']
+
 
 class Option(CommonModel):
     """
@@ -60,6 +63,7 @@ class Option(CommonModel):
     """
     name = models.CharField(max_length=30)
     description = models.TextField()
+    price = models.PositiveIntegerField(default=0)
     menu = models.ForeignKey(
         Menu, on_delete=models.CASCADE, related_name='options')
     

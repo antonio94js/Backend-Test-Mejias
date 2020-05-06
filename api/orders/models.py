@@ -11,6 +11,6 @@ class Order(CommonModel):
                              on_delete=models.CASCADE, related_name='orders')
     option = models.ForeignKey(
         Option, on_delete=models.CASCADE, related_name='orders')
-    additional_notes = models.TextField()
+    additional_notes = models.TextField(blank=True)
 
     objects = OrderManager()

@@ -40,7 +40,7 @@ def throwable(Exception: Exception, message: str, evalute: bool = True):
             raise_exception = kwargs.get("raise_exception", True)
             
             if (result == evalute) and raise_exception:
-                raise Exception(message)
+                raise Exception({'detail': message})
             
             return result
         return evaluate_result

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Form, FormGroup, Label, Input, Container, UncontrolledAlert } from 'reactstrap';
-import { Link } from 'react-router-dom';
-import { http } from "../../utils/http";
+import { Link, useHistory } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
+import { http } from "../../utils/http";
 
 import '../Login/Login.css';
 
@@ -12,6 +13,7 @@ const Login = (props) => {
   const [password, setPassword] = useState('');
   const [first_name, setFirstname] = useState('');
   const [last_name, setLastname] = useState('');
+  const history = useHistory();
 
   return (
     <Container className="themed-container login">
@@ -40,13 +42,16 @@ const Login = (props) => {
           disabled={!email || !password || !first_name || !last_name}
           onClick={async () => {
             try {
-              const { data } = await http.post('/api/v1/sign-up/', {
+              await http.post('/api/v1/sign-up/', {
                 email,
                 password,
                 first_name,
                 last_name
               })
+              toast.info('User created successfully.');
+              history.push('/login');
             } catch (error) {
+              toast.error('There was an error during the sign up process.')
               setError({
                 error: true,
                 message: JSON.stringify(error.response.data)
@@ -54,14 +59,12 @@ const Login = (props) => {
             }
           }}
         >Sign Up</Button>
-        <span style={{'float': 'right'}}>
-           Already a member yet? <Link to={'/login'}>Sign In</Link>
+        <span style={{ 'float': 'right' }}>
+          Already a member yet? <Link to={'/login'}>Sign In</Link>
         </span>
-       
+
       </Form>
     </Container>
-
-
 
   );
 }

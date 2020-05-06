@@ -4,15 +4,10 @@ from api.orders.v1.serializers import OrderSerializer
 from api.orders.models import Order
 from uuid import uuid4
 
-order_mock = {
-    'additional_notes': 'test',
-    'option_id': uuid4(),
-}
-
 @pytest.mark.django_db
 class TestUserSignUpSerializer:
 
-    def test_valid_incoming_data(self):
+    def test_valid_incoming_data(self, order_mock):
         """
         Should return True when the incoming data to be deserialized is valid
         """
@@ -20,16 +15,16 @@ class TestUserSignUpSerializer:
 
         assert serializer.is_valid()
 
-    @pytest.mark.parametrize('input, context', [
-        ({**order_mock, 'option_id': '123456'}, 'Invalid incoming data'),
+    @pytest.mark.parametrize('input_data, context', [
+        ({'option_id': '123456'}, 'Invalid incoming data'),
         ({'additional_notes': 'test'}, 'Missing fields')
     ])
-    def test_invalid_incoming_data(self, input, context):
+    def test_invalid_incoming_data(self, input_data, context, order_mock):
         """
         Should raise a ValidationError when the incoming data to be deserialized is invalid
         """
-
-        serializer = OrderSerializer(data=input)
+        input_data = {**order_mock, **input_data} if context != 'Missing fields' else input_data
+        serializer = OrderSerializer(data=input_data)
 
         with pytest.raises(ValidationError):
             serializer.is_valid(raise_exception=True)
@@ -49,7 +44,7 @@ class TestUserSignUpSerializer:
             # just makes sure that every attribute exist
             assert prop in serializer.data
 
-    def test_create(self, mocker, create_order):
+    def test_create(self, mocker, create_order, order_mock):
         """
         Should call place_order custom method instead of the predefined one (create)
         """

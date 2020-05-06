@@ -7,11 +7,11 @@ app_name = 'menu'
 
 menu_routers = routers.SimpleRouter(trailing_slash=False)
 
-menu_routers.register(r'menu', MenuViewSet)
-menu_routers.register(r'set-menu', PublicMenuViewSet, basename='set-menu')
+menu_routers.register(r'menus', MenuViewSet)
+menu_routers.register(r'daily-menu', PublicMenuViewSet, basename='daily-menu')
 
 
-option_routers = routers.NestedSimpleRouter(menu_routers, r'menu', lookup='menu')
+option_routers = routers.NestedSimpleRouter(menu_routers, r'menus', lookup='menus')
 option_routers.register(r'options', OptionViewSet)
 print(option_routers.urls)
 

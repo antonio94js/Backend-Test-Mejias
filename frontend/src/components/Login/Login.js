@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { UserContext } from '../../shared/userContext';
 import { Button, Form, FormGroup, Label, Input, Container, UncontrolledAlert } from 'reactstrap';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { http } from "../../utils/http";
 
 import './Login.css';
 
 const Login = (props) => {
+  const userContextValue = useContext(UserContext);
+  const history = useHistory();
   const [error, setError] = useState({ error: false, message: '' });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,7 +44,14 @@ const Login = (props) => {
                 email,
                 password,
               })
+
+              userContextValue.setToken(data.access);
+              history.push("/app");
+              
+              toast.info('Welcome.');
             } catch (error) {
+
+              console.log(error);
               setError({
                 error: true,
                 message: JSON.stringify(error.response.data)
@@ -54,9 +65,6 @@ const Login = (props) => {
 
       </Form>
     </Container>
-
-
-
   );
 }
 

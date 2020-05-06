@@ -8,15 +8,15 @@ from ..models import Menu, Option
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option
-        fields = ('id', 'name', 'description')
+        fields = ('id', 'name', 'description', 'price')
 
     def create(self, validated_data):
         return Option.objects.create_option(**validated_data)
 
     def update(self, instance, validated_data):
-        menu_pk = validated_data.pop('menu_pk')
+        menus_pk = validated_data.pop('menus_pk')
 
-        if Menu.objects.is_editable(pk=menu_pk):
+        if Menu.objects.is_editable(pk=menus_pk):
             for key, value in validated_data.items():
                 setattr(instance, key, value)
             instance.save()

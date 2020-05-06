@@ -1,5 +1,5 @@
 import pytest
-from api.menu.permissions import IsPublicMenuAvailable, BelongsToMe, OrderBelongsToMenu
+from api.menu.permissions import IsPublicMenuAvailable, BelongsToMe, OptionBelongsToMenu
 from datetime import date, timedelta
 from uuid import uuid4
 
@@ -22,31 +22,31 @@ class TestIsPublicMenuAvailablePermission:
         assert self.permission.has_object_permission(request, view, menu) == result
 
 
-class TestBelongsToMePermission:
+class TestOptionBelongsToMenuPermission:
 
-    permission = OrderBelongsToMenu()
+    permission = OptionBelongsToMenu()
 
-    @pytest.mark.parametrize('method, menu_pk, result ', [
+    @pytest.mark.parametrize('method, menus_pk, result ', [
         ('PUT', None, True),
         ('DELETE', None, True),
         ('POST', None, True),
         ('GET', None, True),
-        ('PUT', { 'menu_pk': uuid4() }, False),
-        ('DELETE', { 'menu_pk': uuid4() }, False),
+        ('PUT', { 'menus_pk': uuid4() }, False),
+        ('DELETE', { 'menus_pk': uuid4() }, False),
     ])
-    def test_has_object_permission(self, mocker, create_menu, method, menu_pk, result):
+    def test_has_object_permission(self, mocker, create_menu, method, menus_pk, result):
         """
-        Should return True if the HTTP method is PUT, DELETE and the object menu.id is equal than the request menu id, otherwise, False
+        Should return True if the HTTP method is PUT, DELETE and the object.menu.id is equal than the request menu id, otherwise, False
         """
         menu = create_menu(use_default_option=True)
         option = menu.options.first()
         request = mocker.MagicMock(method=method)
-        view = mocker.MagicMock(kwargs = menu_pk or { 'menu_pk':str(menu.id) })
+        view = mocker.MagicMock(kwargs = menus_pk or { 'menus_pk':str(menu.id) })
 
         assert self.permission.has_object_permission(request, view, option) == result
 
 
-class TestOrderBelongsToMenuPermission:
+class TestBelongsToMePermission:
   
     permission = BelongsToMe()
 

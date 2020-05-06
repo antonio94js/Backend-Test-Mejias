@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from ...orders.v1.serializers import OrderSerializer
 from ..models import Menu, Option
-from ..permissions import IsPublicMenuAvailable, OrderBelongsToMenu, BelongsToMe
+from ..permissions import IsPublicMenuAvailable, OptionBelongsToMenu, BelongsToMe
 from .serializers import MenuSerializer, OptionSerializer
 
 class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveModelMixin,  GenericViewSet):
@@ -35,16 +35,16 @@ class MenuViewSet(CreateModelMixin, ListModelMixin, UpdateModelMixin, RetrieveMo
 class OptionViewSet(CreateModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     serializer_class = OptionSerializer
     queryset = Option.objects.all()
-    permission_classes = [IsAuthenticated, IsAdminUser, BelongsToMe, OrderBelongsToMenu]
+    permission_classes = [IsAuthenticated, IsAdminUser, BelongsToMe, OptionBelongsToMenu]
 
     def perform_create(self, serializer):
-        serializer.save(menu_pk=self.kwargs.get('menu_pk'))
+        serializer.save(menus_pk=self.kwargs.get('menus_pk'))
 
     def perform_update(self, serializer):
-        serializer.save(menu_pk=self.kwargs.get('menu_pk'))
+        serializer.save(menus_pk=self.kwargs.get('menus_pk'))
 
     def perform_destroy(self, instance):
-        if Menu.objects.is_editable(pk=self.kwargs.get('menu_pk')):
+        if Menu.objects.is_editable(pk=self.kwargs.get('menus_pk')):
             super().perform_destroy(instance)
 
 

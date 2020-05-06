@@ -18,6 +18,8 @@ from .modules.logger import config as logger_module_config
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, 'frontend'))
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -50,6 +52,7 @@ PROJECT_APPS = [
     'api.users',
     'api.menu',
     'api.orders',
+    'api.token',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + PROJECT_APPS
@@ -70,7 +73,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(FRONTEND_DIR, 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,6 +85,11 @@ TEMPLATES = [
         },
     },
 ]
+STATICFILES_DIRS = [os.path.join(FRONTEND_DIR, 'build', 'static')]
+
+# STATIC_ROOT = os.path.join(BACKEND_DIR, 'static')
+
+STATIC_URL = '/static/'  # already declared in the default settings
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -154,6 +162,8 @@ REST_FRAMEWORK = {
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
 ]
+
+CORS_URLS_REGEX = r'^/api/.*$'
 
 # Json Web Token Settings
 

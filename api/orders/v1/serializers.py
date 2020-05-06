@@ -12,6 +12,7 @@ class OrderSerializer(FlexFieldsModelSerializer):
     option_id = serializers.UUIDField(write_only=True)
     option = serializers.PrimaryKeyRelatedField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
+    additional_notes = serializers.CharField(allow_blank=True)
 
     class Meta:
         model = Order

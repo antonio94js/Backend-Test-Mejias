@@ -14,11 +14,11 @@ class IsPublicMenuAvailable(permissions.BasePermission):
         return obj.available_date == localdate()
 
 
-class OrderBelongsToMenu(permissions.BasePermission):
+class OptionBelongsToMenu(permissions.BasePermission):
 
     EDIT_METHODS = ['PUT', 'DELETE']
     
-    message = 'This order doesn\'t belong to this menu'
+    message = 'This option doesn\'t belong to this menu'
 
     """
     Object-level permission to check that any action performed over any menus option belongs to the proper menu 
@@ -26,7 +26,7 @@ class OrderBelongsToMenu(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj) -> bool:
         if request.method in self.EDIT_METHODS:
-            return str(obj.menu.id) == view.kwargs.get('menu_pk')
+            return str(obj.menu.id) == view.kwargs.get('menus_pk')
         return True
 
 class BelongsToMe(permissions.BasePermission):

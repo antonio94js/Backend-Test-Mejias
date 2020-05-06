@@ -114,13 +114,13 @@ class OptionManager(Manager):
         Creates a new option by applying all the proper validations
         """
         Menu = apps.get_model('menu', 'Menu')
-        menu_pk = model_arguments.pop('menu_pk', None)
+        menus_pk = model_arguments.pop('menus_pk', None)
 
         try:
-            menu = Menu.objects.get(id=menu_pk)
+            menu = Menu.objects.get(id=menus_pk)
             menu.is_editable()
             self.model.objects.check_duplicated(
-                menu_pk=menu_pk, name=model_arguments.get('name'))
+                menus_pk=menus_pk, name=model_arguments.get('name'))
         except ObjectDoesNotExist:
             raise ValidationError(
                 {'detail': 'You tried to add an option to an non-existing menu'})
@@ -130,17 +130,17 @@ class OptionManager(Manager):
             return self.model.objects.create(menu=menu, **model_arguments)
 
     @throwable(ValidationError, 'There is already an option with the set name in this menu')
-    def check_duplicated(self, menu_pk: str, name: str, raise_exception: bool = True) -> bool:
+    def check_duplicated(self, menus_pk: str, name: str, raise_exception: bool = True) -> bool:
         """[Determines if a duplicated option already exists]
 
         Arguments:
-            menu_pk {[str]} -- [The Menu's ID to search for ]
+            menus_pk {[str]} -- [The Menu's ID to search for ]
             name {[str]} -- [The Option's Name to search for ]
             raise_exception {[bool]} -- [Whether or not this method should raise an exception]
 
         Raises:
             ValidationError: []
         """
-        option = self.model.objects.filter(menu__pk=menu_pk, name=name)
+        option = self.model.objects.filter(menu__pk=menus_pk, name=name)
 
         return bool(option)

@@ -13,7 +13,7 @@ user_mock = {
 @pytest.mark.django_db
 class TestUserSignUpSerializer:
   
-    def test_valid_incoming_data(self):
+    def test_valid_incoming_data(self, user_mock):
         """
         Should return True when the incoming data to be deserialized is valid
         """
@@ -21,21 +21,22 @@ class TestUserSignUpSerializer:
 
         assert serializer.is_valid()
 
-    @pytest.mark.parametrize('input, context', [
-        ({**user_mock, 'email': 123}, 'Invalid incoming data'),
+    @pytest.mark.parametrize('input_data, context', [
+        ({'email': 123}, 'Invalid data'),
         ({'first_name': 'test'}, 'Missing fields')
     ])
-    def test_invalid_incoming_data(self, input, context):
+    def test_invalid_incoming_data(self, user_mock, input_data, context):
         """
         Should raise ValidationError when the incoming data to be deserialized is invalid
         """
+        input_data = {**user_mock, **input_data} if context != 'Missing fields' else input_data
 
-        serializer = UserSignUpSerializer(data=input)
+        serializer = UserSignUpSerializer(data=input_data)
 
         with pytest.raises(ValidationError):
             serializer.is_valid(raise_exception=True)
     
-    def test_valid_serialized(self, regular_user):
+    def test_valid_serialized(self, regular_user, user_mock):
         """
         Should return the respective serialized object
         """
@@ -48,7 +49,7 @@ class TestUserSignUpSerializer:
             # just makes sure that every attribute exist
             assert prop in serializer.data
 
-    def test_create(self, mocker, regular_user):
+    def test_create(self, mocker, regular_user, user_mock):
         """
         Should call create_user custom method instead of the predefined one (create)
         """

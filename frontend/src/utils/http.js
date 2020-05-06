@@ -1,13 +1,24 @@
 import axios from 'axios';
 
-const createAxiosInstance = (baseURL = 'http://localhost:8000') => {
-  let instance = axios.create({
-    baseURL,
-    timeout: 60000,
-  });
+const baseURL = 'http://localhost:8000'
 
-  return instance;
+const requestInterceptor = config => {
+    const token = localStorage.getItem('auth-token');
+    const auth = token ? `Bearer ${token} `: false;
+
+    if (auth) {
+      config.headers['Authorization'] = auth
+
+    }
+    return config;
 };
 
-export const http = createAxiosInstance();
+let instance = axios.create({
+    baseURL,
+    timeout: 60000,
+});
+
+instance.interceptors.request.use(requestInterceptor);
+
+export const http = instance;
 

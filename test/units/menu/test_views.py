@@ -116,8 +116,8 @@ class TestOptionViewSet:
         """
         menu = create_menu(use_default_option=True)
         option = menu.options.first()
-        menu_pk = str(option.id)
-        url = reverse('option-list',  kwargs={'menu_pk': menu_pk})
+        menus_pk = str(option.id)
+        url = reverse('option-list',  kwargs={'menus_pk': menus_pk})
         request = auth_rf.post(super_user, url, option_mock, format='json')
 
         mocker.patch.object(Option.objects, 'create_option', return_value=option)
@@ -136,13 +136,13 @@ class TestOptionViewSet:
         """
         menu = create_menu(use_default_option=True)
         option = menu.options.first()
-        menu_pk = str(menu.id)
+        menus_pk = str(menu.id)
         pk = str(option.id)
 
-        url = reverse('option-detail', kwargs={'pk': pk, 'menu_pk': menu_pk})
+        url = reverse('option-detail', kwargs={'pk': pk, 'menus_pk': menus_pk})
         request = auth_rf.put(super_user, url, option_mock, format='json')
 
-        response = OptionViewSet.as_view({'put': 'update'})(request,menu_pk=menu_pk, pk=pk).render()
+        response = OptionViewSet.as_view({'put': 'update'})(request,menus_pk=menus_pk, pk=pk).render()
 
         content = json.loads(response.content)
 
@@ -156,13 +156,13 @@ class TestOptionViewSet:
         """
         menu = create_menu(use_default_option=True)
         option = menu.options.first()
-        menu_pk = str(menu.id)
+        menus_pk = str(menu.id)
         pk = str(option.id)
 
-        url = reverse('option-detail', kwargs={'pk': pk, 'menu_pk': menu_pk})
+        url = reverse('option-detail', kwargs={'pk': pk, 'menus_pk': menus_pk})
         request = auth_rf.delete(super_user, url, format='json')
 
-        response = OptionViewSet.as_view({'delete': 'destroy'})(request,menu_pk=menu_pk, pk=pk).render()
+        response = OptionViewSet.as_view({'delete': 'destroy'})(request,menus_pk=menus_pk, pk=pk).render()
 
         assert response.status_code == 204
 
@@ -176,7 +176,7 @@ class TestPublicMenuViewSet:
         """
         menu = create_menu(available_date=date.today())
         pk = str(menu.id)
-        url = reverse('set-menu-detail', kwargs={'pk': pk})
+        url = reverse('daily-menu-detail', kwargs={'pk': pk})
         request = api_rf.get(url, format='json')
 
         response = PublicMenuViewSet.as_view({'get': 'retrieve'})(request, pk=pk).render()

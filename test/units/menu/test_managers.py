@@ -129,77 +129,76 @@ class TestMenuManager:
 @pytest.mark.django_db
 class TestOptionManager:
 
-    base_option = {'name': 'test', 'description': 'test'}
-
-    def test_create_options(self, create_menu):
+    def test_create_options(self, create_menu, option_mock):
         """
         Should create an option properly if all the validations pass
         """
         menu = create_menu()
         option_info = {
-            **self.base_option,
-            'menu_pk': menu.id
+            **option_mock,
+            'menus_pk': menu.id
         }
 
         option =  Option.objects.create_option(**option_info)
 
         assert option.name == option_info.get('name')
-        assert option.name == option_info.get('description')
+        assert option.description == option_info.get('description')
+        assert option.price == option_info.get('price')
         assert option.menu.id == menu.id
 
     @pytest.mark.parametrize('should_create_menu, date', [
         (True, date.today()),
         (False, None),
     ])
-    def test_create_options_not_valid_menu(self, create_menu, should_create_menu, date):
+    def test_create_options_not_valid_menu(self, create_menu, option_mock, should_create_menu, date):
         """
         Should raise a ValidationError when either the menu is not editable or doesn't exist
         """
     
         option_info = {
-            **self.base_option,
-            'menu_pk': create_menu(available_date=date).id if should_create_menu else uuid4()
+            **option_mock,
+            'menus_pk': create_menu(available_date=date).id if should_create_menu else uuid4()
         }
 
         with pytest.raises(ValidationError):
            Option.objects.create_option(**option_info)
 
-    def test_create_options_invalid_option(self, create_menu):
+    def test_create_options_invalid_option(self, create_menu, option_mock):
         """
         Should raise a ValidationError when there's already an option with the same name in the same menu
         """
     
-        menu = create_menu(options=[self.base_option])
+        menu = create_menu(options=[option_mock])
 
         option_info = {
-            **self.base_option,
-            'menu_pk': menu.id
+            **option_mock,
+            'menus_pk': menu.id
         }
 
         with pytest.raises(ValidationError, match='There is already an option with the set name in this menu'):
            Option.objects.create_option(**option_info)
 
-    def test_check_duplicated(self, create_menu):
+    def test_check_duplicated(self, create_menu, option_mock):
         """
         Should return False if there isn't any option with the same name in the stated menu
         """
     
-        menu = create_menu(options=[self.base_option])
+        menu = create_menu(options=[option_mock])
 
         result = Option.objects.check_duplicated(menu.id, name='random option name')
 
         assert not result 
 
-    def test_check_duplicated_error(self, create_menu):
+    def test_check_duplicated_error(self, create_menu, option_mock):
         """
         Should raise a ValidationError by default if there's any option with the same name in the stated menu
         """
     
-        menu = create_menu(options=[self.base_option])
+        menu = create_menu(options=[option_mock])
 
         with pytest.raises(ValidationError):
 
-            Option.objects.check_duplicated(menu.id, name='test')
+            Option.objects.check_duplicated(menu.id, name=option_mock.get('name'))
     
         
             

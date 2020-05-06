@@ -5,23 +5,10 @@ from api.menu.models import Menu, Option
 from uuid import uuid4
 from datetime import date, timedelta
 
-menu_mock = {
-    'name': 'new name',
-    'description': 'new description',
-    'available_date': date.today(),
-    'options': []
-}
-
-option_mock = {
-        'name': 'new name',
-        'description': 'new description',
-}
-
-
 @pytest.mark.django_db
 class TestMenuSerializer:
 
-    def test_valid_incoming_data(self):
+    def test_valid_incoming_data(self, menu_mock):
         """
         Should return True when the incoming data to be deserialized is valid
         """
@@ -29,16 +16,18 @@ class TestMenuSerializer:
 
         assert serializer.is_valid()
 
-    @pytest.mark.parametrize('input, context', [
-        ({**menu_mock, 'name': date.today()}, 'Invalid incoming data'),
+    @pytest.mark.parametrize('input_data, context', [
+        ({'name': date.today()}, 'Invalid incoming data'),
         ({'name': 'test'}, 'Missing fields'),
-        ({**menu_mock, 'available_date': date.today() - timedelta(days=1)}, 'Invalid date in the past')
+        ({'available_date': date.today() - timedelta(days=1)}, 'Invalid date in the past')
     ])
-    def test_invalid_data(self, input, context):
+    def test_invalid_data(self, input_data, context, menu_mock):
         """
         Should raise a ValidationError when the input data to be deserialized is invalid.
         """
-        serializer = MenuSerializer(data=input)
+        input_data = {**menu_mock, **input_data } if context != 'Missing fields' else input_data
+
+        serializer = MenuSerializer(data=input_data)
 
         with pytest.raises(ValidationError):
             serializer.is_valid(raise_exception=True)
@@ -58,7 +47,7 @@ class TestMenuSerializer:
             # just makes sure that every attribute exist
             assert prop in serializer.data
 
-    def test_create(self, mocker, create_menu):
+    def test_create(self, mocker, create_menu, menu_mock):
         """
         Should call create_menu custom method instead of the predefined one (create)
         """
@@ -74,7 +63,7 @@ class TestMenuSerializer:
         Menu.objects.create_menu.assert_called_once()
         Menu.objects.create.assert_not_called()
 
-    def test_update(self, mocker, create_menu):
+    def test_update(self, mocker, create_menu, menu_mock):
         """
         Should call instance.save() method and update the instance 
         """
@@ -101,7 +90,7 @@ class TestMenuSerializer:
 @pytest.mark.django_db
 class TestOptionSerializer:
  
-    def test_valid_incoming_data(self):
+    def test_valid_incoming_data(self, option_mock):
         """
         Should return True when the incoming data to be deserialized is valid
         """
@@ -109,15 +98,17 @@ class TestOptionSerializer:
 
         assert serializer.is_valid()
 
-    @pytest.mark.parametrize('input, context', [
-        ({**option_mock, 'name': date.today()}, 'Invalid incoming data'),
+    @pytest.mark.parametrize('input_data, context', [
+        ({ 'name': date.today()}, 'Invalid incoming data'),
         ({'name': 'test'}, 'Missing fields')
     ])
-    def test_invalid_data(self, input, context):
+    def test_invalid_data(self, input_data, context, option_mock):
         """
         Should raise a ValidationError when the input data to be deserialized is invalid.
         """
-        serializer = OptionSerializer(data=input)
+        input_data = {**option_mock, **input_data} if context != 'Missing fields' else input_data
+
+        serializer = OptionSerializer(data=input_data)
 
         with pytest.raises(ValidationError):
             serializer.is_valid(raise_exception=True)
@@ -136,7 +127,7 @@ class TestOptionSerializer:
             # just makes sure that every attribute exist
             assert prop in serializer.data
 
-    def test_create(self, mocker, create_menu):
+    def test_create(self, mocker, create_menu, option_mock):
         """
         Should call create_option custom method instead of the predefined one (create)
         """
@@ -153,14 +144,14 @@ class TestOptionSerializer:
         Option.objects.create_option.assert_called_once()
         Option.objects.create.assert_not_called()
 
-    def test_update(self, mocker, create_menu):
+    def test_update(self, mocker, create_menu, option_mock):
         """
         Should call instance.save() method and update the instance 
         """
         
         menu = create_menu(use_default_option=True)
         option = menu.options.first()
-        menu_pk = menu.id
+        menus_pk = menu.id
 
         serializer = OptionSerializer(option, data=option_mock)
         
@@ -168,7 +159,7 @@ class TestOptionSerializer:
         mocker.patch.object(Menu.objects, 'is_editable', return_value=True)
 
         serializer.is_valid()
-        serializer.save(menu_pk=menu_pk)
+        serializer.save(menus_pk=menus_pk)
 
         option.refresh_from_db()
 
