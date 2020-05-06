@@ -1,0 +1,702 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Meal Delivery API Documentation
+  description: | 
+    This is the official Documentation and specification for the Meal Delivery API.
+  contact:
+    name: Antonio Mejias
+    email: antoniomejiasv94@gmail.com
+    url: http://localhost:8000
+# servers:
+#   - url: https://darker.dealsyte.com
+  
+security:
+  - BearerAuth: []
+  
+paths:
+  /auth:
+    post:
+      description: |
+        Authenticate a user.
+      tags: [ Authentication ]
+      security: []
+      operationId: AuthenticationId
+      requestBody:
+        description: |
+          The user's credentials.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthUser'
+                
+      responses:
+        '200':
+          description: The access and refresh token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  refresh:
+                    type: string
+                  access: 
+                    type: string
+                      
+        '401':
+          $ref: '#/components/responses/401InvalidCredential'
+          
+  /sign-up:
+    post:
+      description: |
+       Signs up a new user in the app. This endpoint is intended for creating just regular users.
+      tags: [ Sign Up ]
+      security: []
+      operationId: SignUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+                
+      responses:
+        '201':
+          description: The new created user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+                      
+        '400':
+          $ref: '#/components/responses/400InvalidSignUpRequest'
+          
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /menus:
+    post:
+      description: |
+        Creates a new menu for a given date which is gonna be taken as the `menu availability date`. The menu also may be created with a default set of option or none if you want to.
+      tags: [ Menus ]
+      operationId: createMenu
+      requestBody:
+        description: |
+          The payload required to create a new menu by the admin user.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Menu'
+            example:
+              name: "The tastiest menu of the day"
+              description: "Extremely tasty menu to lick your fingers"
+              available_date: "2020-06-02"
+              options: [{
+                  name: "stewed meat",
+                  description: "Stewed meat with potatos, carrots and others vegetables"
+              }] 
+                
+      responses:
+        '201':
+          description: The created menu.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Menu'
+                      
+        '400':
+          $ref: '#/components/responses/400MenuInvalidRequest'
+          
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+          
+        '403':
+          $ref: '#/components/responses/403MenuForbiddenRequest'
+          
+          
+    get:
+      description: Gets all the menus created by the admin
+      tags: [ Menus ]
+      operationId: getMenus
+      responses:
+        '200':
+          description: The menus available to the admin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Menu'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        
+        '403':
+          $ref: '#/components/responses/403MenuForbiddenRequest'
+          
+  /menus/{id}:
+      get:
+        description: Returns the menu data by ID
+        tags: [ Menus ]
+        operationId: getMenuById
+        parameters:
+          - name: id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: The menu data
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Menu'
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403MenuForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404MenuNotFoundRequest'
+            
+      put:
+        description: Updates the menu data
+        tags: [ Menus ]
+        operationId: updateMenuById
+        parameters:
+          - name: id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+        requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  available_date:
+                    type: string
+                    format: date
+                    
+        responses:
+          '200':
+            description: The updated menu data
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Menu'
+          '400':
+            $ref: '#/components/responses/400MenuInvalidUpdateRequest'
+            
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403MenuForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404MenuNotFoundRequest'
+    
+  /menus/{menu_id}/orders:
+      get:
+        description: Returns the orders placed to a menu
+        tags: [ Menus ]
+        operationId: getMenuOrders
+        parameters:
+          - name: menu_id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+          - name: expand
+            in: query
+            description: States which fields inside the response body should be populated e.g `user` `option`
+            required: true
+            schema:
+              type: array
+              items: 
+                type: string
+        responses:
+          '200':
+            description: An array with the orders
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Order'
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403MenuForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404MenuNotFoundRequest'
+            
+  /daily-menu/{id}:
+      get:
+        security: []
+        description: Returns the daily menu data only if the menu is available on that day.
+        tags: [ Menus ]
+        operationId: getDailyMenuById
+        parameters:
+          - name: id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: The daily menu data
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Menu'
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403MenuForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404MenuNotFoundRequest'
+            
+  /menus/{menu_id}/options:
+      post:
+        description: Creates a new option for a given menu
+        tags: [ Options ]
+        operationId: createOption
+        parameters:
+          - name: menu_id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+        requestBody:
+          description: The option payload data
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Option'
+        responses:
+          '201':
+            description: The created option
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Option'
+                  
+          '400':
+            $ref: '#/components/responses/400OptionInvalidRequest'
+            
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403OptionForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404OptionNotFoundRequest'
+            
+  /menus/{menu_id}/options/{option_id}:
+      put:
+        description: Updates the option data.
+        tags: [ Options ]
+        operationId: updateOption
+        parameters:
+          - name: menu_id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+          - name: option_id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+        requestBody:
+          description: The new option data.
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Option'
+        responses:
+          '200':
+            description: The updated option data.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Option'
+            
+          '400':
+            $ref: '#/components/responses/400OptionInvalidUpdateRequest'
+            
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403OptionForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404OptionNotFoundRequest'
+            
+      delete:
+        description: Delete an option for a given menu
+        tags: [ Options ]
+        operationId: deleteOption
+        parameters:
+          - name: menu_id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+          - name: option_id
+            in: path
+            description: The menu ID
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '204':
+            description: The option has been successfully deleted
+
+          '400':
+            $ref: '#/components/responses/400OptionInvalidDeleteRequest'
+            
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403OptionForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404OptionNotFoundRequest'
+            
+  /orders:
+      post:
+        description: Places a new order in a given menu
+        tags: [ Orders ]
+        operationId: placeOrder
+        requestBody:
+          description: The order data
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        responses:
+          '201':
+            description: The created order 
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Order'
+          '400':
+            $ref: '#/components/responses/400OrderInvalidRequest'
+            
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403ForbiddenRequest'
+            
+          '404':
+            $ref: '#/components/responses/404OptionNotFoundRequest'
+            
+            
+            
+      get:
+        description: Returns all the orders placed for a logged user
+        tags: [ Orders ]
+        operationId: getOrders
+        parameters: 
+          - name: expand
+            in: query
+            description: States which fields inside the response body should be populated e.g `user` `option`
+            required: true
+            schema:
+              type: array
+              items: 
+                type: string
+        responses:
+          '200':
+            description: All the orders placed for a logged user
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Order'
+          '401':
+            $ref: '#/components/responses/401Unauthorized'
+            
+          '403':
+            $ref: '#/components/responses/403ForbiddenRequest'
+    
+components:
+  examples:
+    menuMockCreate:
+      value:
+        name: "The tastiest menu of the day"
+        description: "Extremely tasty menu to lick your fingers"
+        available_date: "2020-06-02"
+        options: [{
+            name: "stewed meat",
+            description: "Stewed meat with potatos, carrots and others vegetables"
+        }] 
+        
+  schemas:
+          
+    DateBase:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date
+          readOnly: true
+          
+    AuthUser:
+        type: object
+        properties:
+          email: 
+            type: string
+            format: email
+          password:
+            type: string
+            format: password
+            writeOnly: true
+            
+    User:
+      allOf: # Combines the main `Menu` schema with `DateBase`-specific properties 
+        - type: object
+          properties:
+            id: 
+              type: string
+              format: uuid
+              readOnly: true
+            email: 
+              type: string
+              format: email
+            password:
+              type: string
+              format: password
+              writeOnly: true
+            first_name: 
+              type: string
+              maxLength: 35
+            last_name:
+              type: string
+              maxLength: 35
+        - $ref: '#/components/schemas/DateBase'
+       
+            
+    Menu:
+      allOf: # Combines the main `Menu` schema with `DateBase`-specific properties 
+        - type: object
+          properties:
+            id: 
+              type: string
+              format: uuid
+              readOnly: true
+            name: 
+              type: string
+              maxLength: 30
+            description: 
+              type: string
+            available_date:
+              type: string
+              format: date
+            options:
+              type: array
+              items:
+                $ref: '#/components/schemas/Option'
+        - $ref: '#/components/schemas/DateBase'
+          
+    Option:
+      allOf: # Combines the main `Option` schema with `DateBase`-specific properties 
+        - type: object
+          properties:
+            id: 
+              type: string
+              format: uuid
+              readOnly: true
+            name: 
+              type: string
+              maxLength: 30
+            description: 
+              type: string
+        - $ref: '#/components/schemas/DateBase'
+          
+    Order:
+      allOf: # Combines the main `Order` schema with `DateBase`-specific properties 
+        - type: object
+          properties:
+            id: 
+              type: string
+              format: uuid
+              readOnly: true
+            additional_notes: 
+              type: string
+            option_id: 
+              type: string
+              format: uuid
+              writeOnly: true
+            option: 
+              allOf:
+                - readOnly: true
+                - $ref: '#/components/schemas/Option'
+            user:
+              allOf:
+                - readOnly: true
+                - $ref: '#/components/schemas/Option'
+        - $ref: '#/components/schemas/DateBase'
+      
+    # Error Schemas
+
+    AuthRequestError:
+      type: object
+      properties: 
+        detail: 
+          type: string
+          example: Authentication credentials were not provided.
+    
+    NotFoundError:
+      type: object
+      properties: 
+        detail: 
+          type: string
+          example: Not found.
+          
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      
+  responses:
+            
+    400MenuInvalidRequest:
+      description: |
+        This Error is thrown every time you try to create a new menu and one of the following scenarios is fulfilled.
+        
+        - You set the `available_date` on a past date.
+        - You try to create a new menu on the same date that another menu was created in.
+        - You missed some required fields.
+        
+    400MenuInvalidUpdateRequest:
+      description: |
+        This Error is thrown every time you try to update a new menu and one of the following scenarios is fulfilled.
+        
+        - You try to update the `available_date` to a date in the past.
+        - You try to update the `available_date` to a date in which another menu already exist.
+        - You try to update a menu which is on its availability date.
+        - You provide invalid input types out of the stated in the input payload description.
+        
+    400OptionInvalidRequest:
+      description: |
+        This Error is thrown every time you try to create a new option and one of the following scenarios is fulfilled.
+        
+        - You try to add an option in a menu that is on its availability date.
+        - You try to add an option in a menu that already has an option with the same name.
+        - You try to add an option providing some invalid input types out of the stated in the input payload description.
+    
+    400OptionInvalidUpdateRequest:
+      description: |
+        This Error is thrown every time you try to update a new option and one of the following scenarios is fulfilled.
+        
+        - You try to update an option in a menu that is on its availability date.
+        - You try to update an option with a name that already in the stated menu.
+        - You try to update an option providing some invalid input types out of the stated in the input payload description.
+    
+    400OptionInvalidDeleteRequest:
+      description: |
+        This Error is thrown every time you try to delete a new option and one of the following scenarios is fulfilled.
+        
+        - You try to delete an option in a menu that is on its availability date.
+        
+    400OrderInvalidRequest:
+      description: |
+        This Error is thrown every time you try to place a new order and one of the following scenarios is fulfilled.
+        
+        - You have already placed an order on the same menu.
+        - You try to place an order out of the day time limit.
+        - The menu is not available.
+    
+    400InvalidSignUpRequest:
+      description: |
+        This Error is thrown every time you try to sign up a new user and one of the following scenarios is fulfilled.
+        
+        - You have provided a duplicated emails.
+        - You have missed some required fields.
+        
+    401Unauthorized:
+      description: |
+        This Error is thrown when you try to consume this endpoint without an access token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthRequestError'
+    
+    401InvalidCredential:
+      description: |
+        The user has provided invalid credentials.
+        
+    403ForbiddenRequest:
+      description: |
+        This Error is thrown when you try to access a resource which you don't have access for.
+        
+    403MenuForbiddenRequest:
+      description: |
+        This Error is thrown when you try to access a menu which you don't have access for. One of the reasons may be.
+        
+        - You try to acccess a public menu out of its avaibility date.
+        - You try to access an admin user endpoint.
+        
+    403OptionForbiddenRequest:
+      description: |
+        This Error is thrown when you try to perform an action over an option which doesn't belong to the stated menu
+
+    404MenuNotFoundRequest:
+      description: |
+        This Error is thrown when the menu you're searching for doesn't exist or doesn't belong to your scope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+            
+    404OptionNotFoundRequest:
+      description: |
+        This Error is thrown when the menu or the option you're searching for doesn't exist or doesn't belong to your scope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
